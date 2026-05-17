@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# uv / virtualenv
+.venv/
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/
+
+# Local environment
+.env
+.env.*
+
+# Large local artifacts
+data/raw/*
+data/processed/*
+outputs/*
+
+# Keep directory placeholders
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!outputs/checkpoints/
+!outputs/checkpoints/.gitkeep
+!outputs/eval/
+!outputs/eval/.gitkeep
+!outputs/logs/
+!outputs/logs/.gitkeep
