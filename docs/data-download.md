@@ -12,12 +12,6 @@ Create the project environment first:
 uv sync --extra quality
 ```
 
-Optional but recommended for faster large-file transfer:
-
-```bash
-export HF_HUB_ENABLE_HF_TRANSFER=1
-```
-
 If the datasets require authentication in your environment, log in first:
 
 ```bash
@@ -91,4 +85,3 @@ Preview the first CSL rows:
 gzip -cd data/raw/neuclir-csl/data/csl.jsonl.gz | head -n 2
 gzip -cd data/raw/neuclir-csl/data/csl.gt.063023.jsonl.gz | head -n 2
 ```
-

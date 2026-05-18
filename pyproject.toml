@@ -46,14 +46,18 @@ quality = [
 ]
 
 [[tool.uv.index]]
-name = "pytorch-cu128"
-url = "https://download.pytorch.org/whl/cu128"
-explicit = true
+url = "https://mirrors.aliyun.com/pypi/simple/"
+default = true
 
 [tool.uv]
 environments = [
     "sys_platform == 'linux' and python_version == '3.12'",
 ]
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
 
 [tool.uv.sources]
 torch = { index = "pytorch-cu128" }
