@@ -24,11 +24,13 @@ htmlcov/
 data/raw/*
 data/processed/*
 outputs/*
+models/
 
 # Keep directory placeholders
 !data/raw/.gitkeep
 !data/processed/.gitkeep
 !outputs/checkpoints/
+outputs/checkpoints/*
 !outputs/checkpoints/.gitkeep
 !outputs/eval/
 !outputs/eval/.gitkeep

@@ -37,20 +37,9 @@ def main() -> None:
         data_files={"train": str(cfg.train_file), "validation": str(cfg.validation_file)},
     )
 
-    def add_text(example: dict) -> dict:
-        return {
-            "text": tokenizer.apply_chat_template(
-                example["messages"],
-                tokenize=False,
-                add_generation_prompt=False,
-            )
-        }
-
-    dataset = dataset.map(add_text, remove_columns=dataset["train"].column_names)
-
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
-        torch_dtype="auto",
+        dtype="auto",
         trust_remote_code=True,
     )
     if cfg.gradient_checkpointing:
@@ -69,7 +58,6 @@ def main() -> None:
         max_length=cfg.max_seq_length,
         deepspeed=None if args.no_deepspeed or cfg.deepspeed is None else str(cfg.deepspeed),
         report_to=[],
-        dataset_text_field="text",
         assistant_only_loss=True,
     )
 
