@@ -1,0 +1,34 @@
+{
+  "name": "tiny_train",
+  "num_examples": 2000,
+  "domains": {
+    "general": 1000,
+    "scientific": 1000
+  },
+  "source_datasets": {
+    "quickmt": 1000,
+    "csl": 1000
+  },
+  "source_chars": {
+    "min": 14,
+    "max": 2946,
+    "mean": 389.3
+  },
+  "target_chars": {
+    "min": 6,
+    "max": 899,
+    "mean": 118.08
+  },
+  "sample_ids": [
+    "quickmt_train_0000000000",
+    "quickmt_train_0000000001",
+    "quickmt_train_0000000002",
+    "quickmt_train_0000000003",
+    "quickmt_train_0000000004",
+    "quickmt_train_0000000005",
+    "quickmt_train_0000000006",
+    "quickmt_train_0000000007",
+    "quickmt_train_0000000008",
+    "quickmt_train_0000000009"
+  ]
+}

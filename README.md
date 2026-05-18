@@ -69,3 +69,25 @@ The first engineering milestone is an end-to-end tiny sample run:
 5. Generate translations and compute SacreBLEU.
 
 See `AGENTS.md` for project requirements and implementation guidance.
+
+## Data Preparation
+
+After downloading raw datasets into `data/raw/`, prepare the initial Stage 1
+tiny/dev splits:
+
+```bash
+uv run python scripts/prepare_stage1_data.py
+```
+
+This writes ignored local artifacts:
+
+```text
+data/processed/stage1/tiny_train.jsonl
+data/processed/stage1/validation.jsonl
+data/processed/stage1/test.jsonl
+data/processed/stage1/sft/*.jsonl
+outputs/eval/data_profile/*.json
+```
+
+The intermediate files use English as `source` and Chinese as `target`. The SFT
+files wrap each example in the non-thinking academic translation chat prompt.
