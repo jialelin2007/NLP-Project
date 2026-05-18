@@ -120,3 +120,18 @@ If this machine cannot reach Hugging Face, pass a local model directory:
 ```bash
 bash scripts/run_smoke_test.sh --model-name-or-path /path/to/local/Qwen3-0.6B --no-deepspeed
 ```
+
+## Evaluation
+
+Run the current copy-source baseline on the Stage 1 test split:
+
+```bash
+uv run python scripts/evaluate.py --limit 100
+```
+
+This writes:
+
+```text
+outputs/eval/copy_source_baseline/metrics.json
+outputs/eval/copy_source_baseline/samples.jsonl
+```
