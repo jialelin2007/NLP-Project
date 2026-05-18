@@ -77,6 +77,7 @@ tiny/dev splits:
 
 ```bash
 uv run python scripts/prepare_stage1_data.py
+uv run python scripts/validate_sft_data.py
 ```
 
 This writes ignored local artifacts:
