@@ -92,3 +92,31 @@ outputs/eval/data_profile/*.json
 
 The intermediate files use English as `source` and Chinese as `target`. The SFT
 files wrap each example in the non-thinking academic translation chat prompt.
+
+## Smoke Training
+
+Validate SFT data first:
+
+```bash
+uv run python scripts/validate_sft_data.py
+```
+
+Run a short local smoke test with a small Qwen model when Hugging Face access is
+available or the model is already cached:
+
+```bash
+bash scripts/run_smoke_test.sh --model-name-or-path Qwen/Qwen3-0.6B --no-deepspeed
+```
+
+For the target 8-GPU full-parameter run, use the default config after confirming
+model files are available locally:
+
+```bash
+bash scripts/run_smoke_test.sh
+```
+
+If this machine cannot reach Hugging Face, pass a local model directory:
+
+```bash
+bash scripts/run_smoke_test.sh --model-name-or-path /path/to/local/Qwen3-0.6B --no-deepspeed
+```
