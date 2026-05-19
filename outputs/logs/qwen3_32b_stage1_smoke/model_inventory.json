@@ -1,0 +1,12 @@
+{
+  "model_dir": "models/Qwen3-32B",
+  "has_config": true,
+  "has_tokenizer_config": true,
+  "has_index": true,
+  "num_safetensors": 17,
+  "total_safetensors_bytes": 65524328560,
+  "missing_files": [],
+  "model_type": "qwen3",
+  "vocab_size": 151669,
+  "chat_template_present": true
+}
