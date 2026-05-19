@@ -1,4 +1,4 @@
-from nlp_project.sft_format import SFTValidationError, validate_sft_record
+from nlp_project.data.sft_format import SFTValidationError, validate_sft_record
 
 
 def test_validate_sft_record_accepts_three_message_translation_record() -> None:

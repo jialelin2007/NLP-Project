@@ -21,18 +21,29 @@ htmlcov/
 .env.*
 
 # Large local artifacts
-data/raw/*
-data/processed/*
-outputs/*
-models/
+/data/raw/*
+/data/processed/*
+/outputs/*
+/models/
+/assets/models/
+/runs/*
 
 # Keep directory placeholders
-!data/raw/.gitkeep
-!data/processed/.gitkeep
-!outputs/checkpoints/
-outputs/checkpoints/*
-!outputs/checkpoints/.gitkeep
-!outputs/eval/
-!outputs/eval/.gitkeep
-!outputs/logs/
-!outputs/logs/.gitkeep
+!/data/raw/.gitkeep
+!/data/processed/.gitkeep
+!/outputs/checkpoints/
+/outputs/checkpoints/*
+!/outputs/checkpoints/.gitkeep
+!/outputs/eval/
+!/outputs/eval/.gitkeep
+!/outputs/logs/
+!/outputs/logs/.gitkeep
+!/runs/checkpoints/
+/runs/checkpoints/*
+!/runs/checkpoints/.gitkeep
+!/runs/eval/
+/runs/eval/*
+!/runs/eval/.gitkeep
+!/runs/logs/
+/runs/logs/*
+!/runs/logs/.gitkeep

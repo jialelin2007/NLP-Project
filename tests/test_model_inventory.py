@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from nlp_project.model_inventory import inspect_local_model
+from nlp_project.models.inventory import inspect_local_model
 
 
 def write_json(path: Path, data: dict) -> None:

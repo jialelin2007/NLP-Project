@@ -1,6 +1,6 @@
 import json
 
-from nlp_project.data_processing import (
+from nlp_project.data.processing import (
     build_sft_record,
     is_valid_translation_pair,
     make_csl_example,

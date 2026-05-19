@@ -1,5 +1,4 @@
 {
-  "_compatibility_note": "Canonical DeepSpeed config: configs/deepspeed/zero3_bf16.json",
   "bf16": {
     "enabled": true
   },

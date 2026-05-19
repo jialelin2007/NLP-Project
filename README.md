@@ -47,15 +47,21 @@ uv pip install --python .venv-sglang sglang[all]
 ## Repository Layout
 
 ```text
-configs/              Training and distributed runtime configs.
-scripts/              CLI scripts for data preparation, training, evaluation.
-src/nlp_project/      Importable project code.
+configs/deepspeed/    DeepSpeed runtime configs.
+configs/training/     Training YAML configs.
+scripts/data/         Data download, preparation, and validation CLIs.
+scripts/training/     SFT training CLIs and smoke-run shell entry points.
+scripts/evaluation/   Translation evaluation CLIs.
+scripts/models/       Local model inspection CLIs.
+scripts/*.py,*.sh     Compatibility wrappers for older commands.
+src/nlp_project/      Importable project code split by function.
+assets/models/        Local Hugging Face model files. Ignored by git.
 data/raw/             Local raw datasets. Ignored by git.
 data/processed/       Local processed JSONL/Parquet datasets. Ignored by git.
 data/glossary/        Small tracked terminology resources.
-outputs/checkpoints/  Local model checkpoints. Ignored by git.
-outputs/eval/         Local evaluation outputs. Ignored by git.
-outputs/logs/         Local run logs. Ignored by git.
+runs/checkpoints/     Local model checkpoints. Ignored by git.
+runs/eval/            Local evaluation outputs. Ignored by git.
+runs/logs/            Local run logs. Ignored by git.
 ```
 
 ## First Milestone
@@ -76,9 +82,12 @@ After downloading raw datasets into `data/raw/`, prepare the initial Stage 1
 tiny/dev splits:
 
 ```bash
-uv run python scripts/prepare_stage1_data.py
-uv run python scripts/validate_sft_data.py
+uv run python scripts/data/prepare_stage1_data.py
+uv run python scripts/data/validate_sft_data.py
 ```
+
+The old wrapper paths `scripts/prepare_stage1_data.py` and
+`scripts/validate_sft_data.py` remain compatible.
 
 This writes ignored local artifacts:
 
@@ -87,7 +96,7 @@ data/processed/stage1/tiny_train.jsonl
 data/processed/stage1/validation.jsonl
 data/processed/stage1/test.jsonl
 data/processed/stage1/sft/*.jsonl
-outputs/eval/data_profile/*.json
+runs/eval/data_profile/*.json
 ```
 
 The intermediate files use English as `source` and Chinese as `target`. The SFT
@@ -98,42 +107,46 @@ files wrap each example in the non-thinking academic translation chat prompt.
 Validate SFT data first:
 
 ```bash
-uv run python scripts/validate_sft_data.py
+uv run python scripts/data/validate_sft_data.py
 ```
 
 Run a short local smoke test with a small Qwen model when Hugging Face access is
 available or the model is already cached:
 
 ```bash
-bash scripts/run_smoke_test.sh --model-name-or-path Qwen/Qwen3-0.6B --no-deepspeed
+bash scripts/training/run_smoke_test.sh --model-name-or-path Qwen/Qwen3-0.6B --no-deepspeed
 ```
 
 For the target 8-GPU full-parameter run, use the default config after confirming
 model files are available locally:
 
 ```bash
-bash scripts/run_smoke_test.sh
+bash scripts/training/run_smoke_test.sh
 ```
 
 If this machine cannot reach Hugging Face, pass a local model directory:
 
 ```bash
-bash scripts/run_smoke_test.sh --model-name-or-path /path/to/local/Qwen3-0.6B --no-deepspeed
+bash scripts/training/run_smoke_test.sh --model-name-or-path /path/to/local/Qwen3-0.6B --no-deepspeed
 ```
+
+The old wrapper path `scripts/run_smoke_test.sh` remains compatible.
 
 ## Evaluation
 
 Run the current copy-source baseline on the Stage 1 test split:
 
 ```bash
-uv run python scripts/evaluate.py --limit 100
+uv run python scripts/evaluation/evaluate_translation.py --limit 100
 ```
+
+The old wrapper path `scripts/evaluate.py` remains compatible.
 
 This writes:
 
 ```text
-outputs/eval/copy_source_baseline/metrics.json
-outputs/eval/copy_source_baseline/samples.jsonl
+runs/eval/copy_source_baseline/metrics.json
+runs/eval/copy_source_baseline/samples.jsonl
 ```
 
 ## Qwen3-32B 8-GPU Smoke
@@ -141,14 +154,18 @@ outputs/eval/copy_source_baseline/samples.jsonl
 Verify local model files:
 
 ```bash
-uv run python scripts/inspect_model.py models/Qwen3-32B --load-tokenizer
+uv run python scripts/models/inspect_local_model.py assets/models/Qwen3-32B --load-tokenizer
 ```
+
+The old wrapper path `scripts/inspect_model.py` remains compatible.
 
 Run 8-GPU ZeRO-3 smoke training:
 
 ```bash
-bash scripts/run_qwen3_32b_smoke.sh
+bash scripts/training/run_qwen3_32b_smoke.sh
 ```
 
-Logs are written to `outputs/logs/qwen3_32b_stage1_smoke/`; checkpoints are
-written to `outputs/checkpoints/qwen3_32b_stage1_smoke/`.
+The old wrapper path `scripts/run_qwen3_32b_smoke.sh` remains compatible.
+
+Logs are written to `runs/logs/qwen3_32b_stage1_smoke/`; checkpoints are
+written to `runs/checkpoints/qwen3_32b_stage1_smoke/`.

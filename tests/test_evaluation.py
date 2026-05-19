@@ -1,4 +1,4 @@
-from nlp_project.evaluation import compute_sacrebleu, make_sample_record
+from nlp_project.evaluation.metrics import compute_sacrebleu, make_sample_record
 
 
 def test_compute_sacrebleu_returns_score() -> None:
