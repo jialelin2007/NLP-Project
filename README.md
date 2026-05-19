@@ -135,3 +135,20 @@ This writes:
 outputs/eval/copy_source_baseline/metrics.json
 outputs/eval/copy_source_baseline/samples.jsonl
 ```
+
+## Qwen3-32B 8-GPU Smoke
+
+Verify local model files:
+
+```bash
+uv run python scripts/inspect_model.py models/Qwen3-32B --load-tokenizer
+```
+
+Run 8-GPU ZeRO-3 smoke training:
+
+```bash
+bash scripts/run_qwen3_32b_smoke.sh
+```
+
+Logs are written to `outputs/logs/qwen3_32b_stage1_smoke/`; checkpoints are
+written to `outputs/checkpoints/qwen3_32b_stage1_smoke/`.
