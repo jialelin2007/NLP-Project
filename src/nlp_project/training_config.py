@@ -20,6 +20,9 @@ class TrainingConfig:
     bf16: bool
     gradient_checkpointing: bool
     deepspeed: Path | None = None
+    logging_dir: Path | None = None
+    run_name: str | None = None
+    save_total_limit: int | None = None
 
 
 def load_training_config(path: Path) -> TrainingConfig:
@@ -37,4 +40,9 @@ def load_training_config(path: Path) -> TrainingConfig:
         bf16=bool(data["bf16"]),
         gradient_checkpointing=bool(data["gradient_checkpointing"]),
         deepspeed=Path(data["deepspeed"]) if data.get("deepspeed") else None,
+        logging_dir=Path(data["logging_dir"]) if data.get("logging_dir") else None,
+        run_name=data.get("run_name"),
+        save_total_limit=int(data["save_total_limit"])
+        if data.get("save_total_limit") is not None
+        else None,
     )
