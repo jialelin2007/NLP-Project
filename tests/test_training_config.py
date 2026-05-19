@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from nlp_project.training_config import load_training_config
+from nlp_project.training.config import load_training_config
 
 
 def test_load_training_config_reads_required_paths(tmp_path: Path) -> None:

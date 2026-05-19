@@ -53,7 +53,6 @@ scripts/data/         Data download, preparation, and validation CLIs.
 scripts/training/     SFT training CLIs and smoke-run shell entry points.
 scripts/evaluation/   Translation evaluation CLIs.
 scripts/models/       Local model inspection CLIs.
-scripts/*.py,*.sh     Compatibility wrappers for older commands.
 src/nlp_project/      Importable project code split by function.
 assets/models/        Local Hugging Face model files. Ignored by git.
 data/raw/             Local raw datasets. Ignored by git.
@@ -85,9 +84,6 @@ tiny/dev splits:
 uv run python scripts/data/prepare_stage1_data.py
 uv run python scripts/data/validate_sft_data.py
 ```
-
-The old wrapper paths `scripts/prepare_stage1_data.py` and
-`scripts/validate_sft_data.py` remain compatible.
 
 This writes ignored local artifacts:
 
@@ -130,8 +126,6 @@ If this machine cannot reach Hugging Face, pass a local model directory:
 bash scripts/training/run_smoke_test.sh --model-name-or-path /path/to/local/Qwen3-0.6B --no-deepspeed
 ```
 
-The old wrapper path `scripts/run_smoke_test.sh` remains compatible.
-
 ## Evaluation
 
 Run the current copy-source baseline on the Stage 1 test split:
@@ -139,8 +133,6 @@ Run the current copy-source baseline on the Stage 1 test split:
 ```bash
 uv run python scripts/evaluation/evaluate_translation.py --limit 100
 ```
-
-The old wrapper path `scripts/evaluate.py` remains compatible.
 
 This writes:
 
@@ -157,15 +149,11 @@ Verify local model files:
 uv run python scripts/models/inspect_local_model.py assets/models/Qwen3-32B --load-tokenizer
 ```
 
-The old wrapper path `scripts/inspect_model.py` remains compatible.
-
 Run 8-GPU ZeRO-3 smoke training:
 
 ```bash
 bash scripts/training/run_qwen3_32b_smoke.sh
 ```
-
-The old wrapper path `scripts/run_qwen3_32b_smoke.sh` remains compatible.
 
 Logs are written to `runs/logs/qwen3_32b_stage1_smoke/`; checkpoints are
 written to `runs/checkpoints/qwen3_32b_stage1_smoke/`.
