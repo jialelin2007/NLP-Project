@@ -17,7 +17,7 @@ mkdir -p "$LOG_DIR"
 uv run python scripts/inspect_model.py "$MODEL_DIR" --load-tokenizer | tee "$LOG_DIR/model_inventory.json"
 uv run python scripts/validate_sft_data.py | tee "$LOG_DIR/sft_validation.log"
 
-torchrun --nproc_per_node=8 scripts/train_sft.py \
+uv run torchrun --nproc_per_node=8 scripts/train_sft.py \
   --config "$CONFIG" \
   --model-name-or-path "$MODEL_DIR" \
   2>&1 | tee "$LOG_DIR/train.log"
