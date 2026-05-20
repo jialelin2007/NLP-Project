@@ -30,8 +30,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--raw-dir", type=Path, default=Path("data/raw"))
     parser.add_argument("--output-dir", type=Path, default=Path("data/processed/stage1"))
     parser.add_argument("--profile-dir", type=Path, default=Path("runs/eval/data_profile"))
-    parser.add_argument("--quickmt-tiny-train", type=int, default=1000)
-    parser.add_argument("--csl-tiny-train", type=int, default=1000)
+    parser.add_argument("--quickmt-train-size", type=int, default=1000)
+    parser.add_argument("--csl-train-size", type=int, default=1000)
     parser.add_argument("--validation-size", type=int, default=1000)
     parser.add_argument("--test-size", type=int, default=1000)
     parser.add_argument("--quickmt-train-shards", type=int, default=1)
@@ -145,11 +145,11 @@ def main() -> None:
     if not train_files:
         raise FileNotFoundError("No quickmt-train parquet files found.")
 
-    tiny_train = [
+    train = [
         *collect_quickmt_examples(
-            train_files, split="train", limit=args.quickmt_tiny_train, start_index=0
+            train_files, split="train", limit=args.quickmt_train_size, start_index=0
         ),
-        *collect_csl_examples(args.raw_dir, split="train", limit=args.csl_tiny_train),
+        *collect_csl_examples(args.raw_dir, split="train", limit=args.csl_train_size),
     ]
     quickmt_validation = []
     quickmt_test = []
@@ -185,14 +185,14 @@ def main() -> None:
         *collect_csl_examples(args.raw_dir, split="test", limit=args.test_size),
     ]
 
-    write_split(args.output_dir, args.profile_dir, "tiny_train", tiny_train)
+    write_split(args.output_dir, args.profile_dir, "train", train)
     write_split(args.output_dir, args.profile_dir, "validation", validation)
     write_split(args.output_dir, args.profile_dir, "test", test)
 
     print(
         json.dumps(
             {
-                "tiny_train": len(tiny_train),
+                "train": len(train),
                 "validation": len(validation),
                 "test": len(test),
                 "output_dir": str(args.output_dir),

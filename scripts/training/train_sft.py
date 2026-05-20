@@ -16,7 +16,7 @@ from nlp_project.training.config import load_training_config  # noqa: E402
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run SFT smoke training.")
+    parser = argparse.ArgumentParser(description="Run Qwen translation SFT training.")
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--model-name-or-path", type=str, default=None)
     parser.add_argument("--no-deepspeed", action="store_true")

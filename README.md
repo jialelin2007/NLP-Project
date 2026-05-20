@@ -1,159 +1,126 @@
 # Qwen Paper Translation SFT
 
-This repository is for full-parameter supervised fine-tuning of `Qwen/Qwen3-32B`
-for English-to-Chinese translation of CS/AI academic papers.
+This repository contains a local workflow for full-parameter supervised
+fine-tuning of `Qwen/Qwen3-32B` for English-to-Chinese translation of CS/AI
+academic papers.
 
-The target machine is 8 x RTX PRO 6000 96GB. The default direction is BF16
-multi-GPU training with DeepSpeed ZeRO-3 or FSDP, not naive DDP.
+The target machine is 8 x RTX PRO 6000 96GB. The standard training path is BF16
+multi-GPU training with DeepSpeed ZeRO-3.
 
 ## Environment
 
 This project uses `uv` and Python 3.12.
 
-Create or update the training, evaluation, and development environment:
-
 ```bash
 uv sync --extra quality
-```
-
-Run commands through the project environment:
-
-```bash
 uv run python --version
 uv run python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
 ```
 
 PyTorch is configured to install CUDA 12.8 wheels from the official PyTorch
-index. Newer NVIDIA drivers, including CUDA 13-capable drivers, can run these
-wheels through driver backward compatibility.
-
-Optional inference packages need separate handling because `vllm`, `sglang`,
-and COMET often pin incompatible `torch`, `transformers`, and `protobuf`
-versions.
-
-`vllm` is available as a project extra:
-
-```bash
-uv sync --extra vllm
-```
-
-For SGLang, create a separate environment outside this project lock:
-
-```bash
-uv venv .venv-sglang --python 3.12
-uv pip install --python .venv-sglang sglang[all]
-```
+index. Optional inference packages such as `vllm` and SGLang may need separate
+environments because they often pin conflicting dependency versions.
 
 ## Repository Layout
 
 ```text
 configs/deepspeed/    DeepSpeed runtime configs.
-configs/training/     Training YAML configs.
-scripts/data/         Data download, preparation, and validation CLIs.
-scripts/training/     SFT training CLIs and smoke-run shell entry points.
-scripts/evaluation/   Translation evaluation CLIs.
-scripts/models/       Local model inspection CLIs.
-src/nlp_project/      Importable project code split by function.
+configs/training/     Formal Stage 1 and Stage 2 training configs.
+scripts/data/         Dataset download, preparation, and SFT validation CLIs.
+scripts/training/     SFT training CLI.
+scripts/evaluation/   Translation evaluation CLI.
+scripts/models/       Local model inspection CLI.
+src/nlp_project/      Importable project code split by responsibility.
 assets/models/        Local Hugging Face model files. Ignored by git.
 data/raw/             Local raw datasets. Ignored by git.
-data/processed/       Local processed JSONL/Parquet datasets. Ignored by git.
-data/glossary/        Small tracked terminology resources.
+data/processed/       Processed JSONL/SFT datasets. Ignored by git.
+data/glossary/        Tracked terminology resources.
 runs/checkpoints/     Local model checkpoints. Ignored by git.
 runs/eval/            Local evaluation outputs. Ignored by git.
-runs/logs/            Local run logs. Ignored by git.
+runs/logs/            Local training and validation logs. Ignored by git.
 ```
 
-## First Milestone
+## Model Files
 
-The first engineering milestone is an end-to-end tiny sample run:
+Place the base model under:
 
-1. Prepare a tiny bilingual dataset.
-2. Convert it to chat SFT format.
-3. Load the Qwen3 tokenizer.
-4. Run a short SFT smoke test.
-5. Generate translations and compute SacreBLEU.
+```text
+assets/models/Qwen3-32B/
+```
 
-See `AGENTS.md` for project requirements and implementation guidance.
+Verify local model files before training:
+
+```bash
+uv run python scripts/models/inspect_local_model.py assets/models/Qwen3-32B --load-tokenizer
+```
 
 ## Data Preparation
 
-After downloading raw datasets into `data/raw/`, prepare the initial Stage 1
-tiny/dev splits:
+Download or place raw datasets under `data/raw/`, then build Stage 1 processed
+and SFT splits:
 
 ```bash
 uv run python scripts/data/prepare_stage1_data.py
 uv run python scripts/data/validate_sft_data.py
 ```
 
-This writes ignored local artifacts:
+Default outputs:
 
 ```text
-data/processed/stage1/tiny_train.jsonl
+data/processed/stage1/train.jsonl
 data/processed/stage1/validation.jsonl
 data/processed/stage1/test.jsonl
-data/processed/stage1/sft/*.jsonl
+data/processed/stage1/sft/train.jsonl
+data/processed/stage1/sft/validation.jsonl
+data/processed/stage1/sft/test.jsonl
 runs/eval/data_profile/*.json
 ```
 
-The intermediate files use English as `source` and Chinese as `target`. The SFT
-files wrap each example in the non-thinking academic translation chat prompt.
+Stage 2 CS/AI paper-specialization data should use the same intermediate and
+SFT schema under `data/processed/stage2/`.
 
-## Smoke Training
+## Training
 
-Validate SFT data first:
-
-```bash
-uv run python scripts/data/validate_sft_data.py
-```
-
-Run a short local smoke test with a small Qwen model when Hugging Face access is
-available or the model is already cached:
+Stage 1 adapts the base model to general and scientific English-to-Chinese
+translation:
 
 ```bash
-bash scripts/training/run_smoke_test.sh --model-name-or-path Qwen/Qwen3-0.6B --no-deepspeed
+uv run torchrun --nproc_per_node=8 scripts/training/train_sft.py \
+  --config configs/training/qwen3_32b_stage1_full.yaml
 ```
 
-For the target 8-GPU full-parameter run, use the default config after confirming
-model files are available locally:
+Stage 2 continues from the Stage 1 checkpoint on CS/AI paper-style data:
 
 ```bash
-bash scripts/training/run_smoke_test.sh
+uv run torchrun --nproc_per_node=8 scripts/training/train_sft.py \
+  --config configs/training/qwen3_32b_stage2_full.yaml
 ```
 
-If this machine cannot reach Hugging Face, pass a local model directory:
-
-```bash
-bash scripts/training/run_smoke_test.sh --model-name-or-path /path/to/local/Qwen3-0.6B --no-deepspeed
-```
+Training configs write checkpoints and logs under `runs/`.
 
 ## Evaluation
 
-Run the current copy-source baseline on the Stage 1 test split:
+Evaluate on the Stage 1 test split:
 
 ```bash
-uv run python scripts/evaluation/evaluate_translation.py --limit 100
+uv run python scripts/evaluation/evaluate_translation.py \
+  --input data/processed/stage1/test.jsonl \
+  --output-dir runs/eval/qwen3_32b_stage1_full \
+  --limit 100
 ```
 
-This writes:
+The current evaluator computes SacreBLEU and saves samples. It is intentionally
+small; model-backed generation can be added behind the same output format:
 
 ```text
-runs/eval/copy_source_baseline/metrics.json
-runs/eval/copy_source_baseline/samples.jsonl
+runs/eval/<run_name>/metrics.json
+runs/eval/<run_name>/samples.jsonl
 ```
 
-## Qwen3-32B 8-GPU Smoke
-
-Verify local model files:
+## Useful Checks
 
 ```bash
-uv run python scripts/models/inspect_local_model.py assets/models/Qwen3-32B --load-tokenizer
+uv run ruff check .
+uv run pytest
+uv run python scripts/data/validate_sft_data.py
 ```
-
-Run 8-GPU ZeRO-3 smoke training:
-
-```bash
-bash scripts/training/run_qwen3_32b_smoke.sh
-```
-
-Logs are written to `runs/logs/qwen3_32b_stage1_smoke/`; checkpoints are
-written to `runs/checkpoints/qwen3_32b_stage1_smoke/`.

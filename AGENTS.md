@@ -121,7 +121,9 @@ Recommended initial hyperparameter ranges for full-parameter SFT:
 - `global_batch_size`: choose based on memory; use gradient accumulation.
 - `packing`: optional; use only if it does not break loss masking or evaluation clarity.
 
-Before launching a long run, create or run a smoke test that trains for a few steps on a tiny subset and verifies that loss decreases or at least runs without NaN/OOM.
+Before launching a long run, run a short preflight training job by temporarily
+overriding the formal training config to a small step count. Verify that the
+job runs without NaN/OOM and that logging/checkpoint paths are correct.
 
 ## Environment Guidance
 
@@ -148,15 +150,16 @@ Use the existing repository structure if one already exists. If the project is e
 
 ```text
 configs/
-  qwen3_32b_full_sft_stage1.yaml
-  qwen3_32b_full_sft_stage2.yaml
-  ds_zero3_bf16.json
+  deepspeed/
+    zero3_bf16.json
+  training/
+    qwen3_32b_stage1_full.yaml
+    qwen3_32b_stage2_full.yaml
 scripts/
-  prepare_data.py
-  train_sft.py
-  evaluate.py
-  build_glossary.py
-  run_smoke_test.sh
+  data/
+  training/
+  evaluation/
+  models/
 src/
   data/
   training/
@@ -245,7 +248,7 @@ A good first milestone is:
 1. Environment can be created.
 2. A tiny dataset can be prepared.
 3. Qwen3 tokenizer can load.
-4. A small SFT smoke test runs for a few steps.
+4. The formal SFT training entry point can run for a few preflight steps.
 5. Evaluation script can generate translations and compute at least SacreBLEU.
 6. README documents the exact commands.
 

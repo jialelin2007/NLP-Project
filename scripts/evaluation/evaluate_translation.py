@@ -19,9 +19,7 @@ from nlp_project.evaluation.metrics import (  # noqa: E402
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run translation evaluation.")
     parser.add_argument("--input", type=Path, default=Path("data/processed/stage1/test.jsonl"))
-    parser.add_argument(
-        "--output-dir", type=Path, default=Path("runs/eval/copy_source_baseline")
-    )
+    parser.add_argument("--output-dir", type=Path, default=Path("runs/eval/translation_eval"))
     parser.add_argument("--limit", type=int, default=100)
     return parser.parse_args()
 
