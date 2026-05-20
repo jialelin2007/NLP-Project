@@ -49,8 +49,11 @@ uv pip install --python .venv-sglang sglang[all]
 ```text
 configs/deepspeed/    DeepSpeed runtime configs.
 configs/training/     Training YAML configs.
-scripts/              Thin file wrappers for installed CLI entry points.
-src/nlp_project/      Importable project code and CLI implementations.
+scripts/data/         Data download, preparation, and validation CLIs.
+scripts/training/     SFT training CLIs and smoke-run shell entry points.
+scripts/evaluation/   Translation evaluation CLIs.
+scripts/models/       Local model inspection CLIs.
+src/nlp_project/      Importable project code split by function.
 assets/models/        Local Hugging Face model files. Ignored by git.
 data/raw/             Local raw datasets. Ignored by git.
 data/processed/       Local processed JSONL/Parquet datasets. Ignored by git.
@@ -78,8 +81,8 @@ After downloading raw datasets into `data/raw/`, prepare the initial Stage 1
 tiny/dev splits:
 
 ```bash
-uv run nlp-prepare-stage1-data
-uv run nlp-validate-sft-data
+uv run python scripts/data/prepare_stage1_data.py
+uv run python scripts/data/validate_sft_data.py
 ```
 
 This writes ignored local artifacts:
@@ -95,19 +98,32 @@ runs/eval/data_profile/*.json
 The intermediate files use English as `source` and Chinese as `target`. The SFT
 files wrap each example in the non-thinking academic translation chat prompt.
 
-## Training
+## Smoke Training
 
 Validate SFT data first:
 
 ```bash
-uv run nlp-validate-sft-data
+uv run python scripts/data/validate_sft_data.py
 ```
 
-Run SFT with an explicit training config:
+Run a short local smoke test with a small Qwen model when Hugging Face access is
+available or the model is already cached:
 
 ```bash
-uv run torchrun --nproc_per_node=8 -m nlp_project.cli.train_sft \
-  --config configs/training/<run_config>.yaml
+bash scripts/training/run_smoke_test.sh --model-name-or-path Qwen/Qwen3-0.6B --no-deepspeed
+```
+
+For the target 8-GPU full-parameter run, use the default config after confirming
+model files are available locally:
+
+```bash
+bash scripts/training/run_smoke_test.sh
+```
+
+If this machine cannot reach Hugging Face, pass a local model directory:
+
+```bash
+bash scripts/training/run_smoke_test.sh --model-name-or-path /path/to/local/Qwen3-0.6B --no-deepspeed
 ```
 
 ## Evaluation
@@ -115,7 +131,7 @@ uv run torchrun --nproc_per_node=8 -m nlp_project.cli.train_sft \
 Run the current copy-source baseline on the Stage 1 test split:
 
 ```bash
-uv run nlp-evaluate-translation --limit 100
+uv run python scripts/evaluation/evaluate_translation.py --limit 100
 ```
 
 This writes:
@@ -125,10 +141,19 @@ runs/eval/copy_source_baseline/metrics.json
 runs/eval/copy_source_baseline/samples.jsonl
 ```
 
-## Qwen3-32B Model Check
+## Qwen3-32B 8-GPU Smoke
 
 Verify local model files:
 
 ```bash
-uv run nlp-inspect-local-model assets/models/Qwen3-32B --load-tokenizer
+uv run python scripts/models/inspect_local_model.py assets/models/Qwen3-32B --load-tokenizer
 ```
+
+Run 8-GPU ZeRO-3 smoke training:
+
+```bash
+bash scripts/training/run_qwen3_32b_smoke.sh
+```
+
+Logs are written to `runs/logs/qwen3_32b_stage1_smoke/`; checkpoints are
+written to `runs/checkpoints/qwen3_32b_stage1_smoke/`.

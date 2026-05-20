@@ -2128,7 +2128,7 @@ wheels = [
 [[package]]
 name = "qwen-paper-translation-sft"
 version = "0.1.0"
-source = { editable = "." }
+source = { virtual = "." }
 dependencies = [
     { name = "accelerate", marker = "sys_platform == 'linux'" },
     { name = "bitsandbytes", marker = "sys_platform == 'linux'" },
