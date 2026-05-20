@@ -179,6 +179,66 @@ wandb_mode: online
     assert config.wandb_mode == "online"
 
 
+def test_load_training_config_reads_speed_fields(tmp_path: Path) -> None:
+    config_path = tmp_path / "config.yaml"
+    config_path.write_text(
+        """
+model_name_or_path: assets/models/Qwen3-32B
+train_file: data/processed/stage1/sft/train.jsonl
+validation_file: data/processed/stage1/sft/validation.jsonl
+output_dir: runs/checkpoints/qwen3_32b_stage1_full
+max_seq_length: 3072
+max_steps: 4000
+per_device_train_batch_size: 2
+gradient_accumulation_steps: 4
+learning_rate: 0.000005
+bf16: true
+gradient_checkpointing: true
+packing: true
+eval_packing: false
+attn_implementation: flash_attention_2
+""",
+        encoding="utf-8",
+    )
+
+    config = load_training_config(config_path)
+
+    assert config.max_seq_length == 3072
+    assert config.per_device_train_batch_size == 2
+    assert config.gradient_accumulation_steps == 4
+    assert config.packing is True
+    assert config.eval_packing is False
+    assert config.attn_implementation == "flash_attention_2"
+
+
+def test_resolve_attention_implementation_falls_back_without_flash_attn(
+    tmp_path: Path, monkeypatch
+) -> None:
+    config_path = tmp_path / "config.yaml"
+    config_path.write_text(
+        """
+model_name_or_path: assets/models/Qwen3-32B
+train_file: data/processed/stage1/sft/train.jsonl
+validation_file: data/processed/stage1/sft/validation.jsonl
+output_dir: runs/checkpoints/qwen3_32b_stage1_full
+max_seq_length: 3072
+max_steps: 4000
+per_device_train_batch_size: 2
+gradient_accumulation_steps: 4
+learning_rate: 0.000005
+bf16: true
+gradient_checkpointing: true
+attn_implementation: flash_attention_2
+""",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr("nlp_project.training.config.has_flash_attention_2", lambda: False)
+
+    from nlp_project.training.config import resolve_attention_implementation
+
+    assert resolve_attention_implementation(load_training_config(config_path)) == "sdpa"
+
+
 def test_configure_wandb_environment_sets_expected_variables(tmp_path: Path, monkeypatch) -> None:
     config_path = tmp_path / "config.yaml"
     config_path.write_text(

@@ -14,6 +14,7 @@ from trl import SFTConfig, SFTTrainer  # noqa: E402
 from nlp_project.training.config import (  # noqa: E402
     configure_wandb_environment,
     load_training_config,
+    resolve_attention_implementation,
 )
 from nlp_project.training.data import load_sft_message_datasets  # noqa: E402
 
@@ -43,11 +44,13 @@ def main() -> None:
         tokenizer.pad_token = tokenizer.eos_token
 
     dataset = load_sft_message_datasets(cfg.train_file, cfg.validation_file)
+    attn_implementation = resolve_attention_implementation(cfg)
 
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
         dtype="auto",
         trust_remote_code=True,
+        attn_implementation=attn_implementation,
     )
     if cfg.gradient_checkpointing:
         model.gradient_checkpointing_enable()
@@ -78,6 +81,8 @@ def main() -> None:
         report_to=cfg.report_to,
         run_name=cfg.run_name,
         assistant_only_loss=True,
+        packing=cfg.packing if cfg.packing is not None else True,
+        eval_packing=cfg.eval_packing if cfg.eval_packing is not None else False,
     )
 
     trainer = SFTTrainer(

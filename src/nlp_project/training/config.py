@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.util
 import os
 from dataclasses import dataclass
 from pathlib import Path
@@ -27,6 +28,9 @@ class TrainingConfig:
     save_steps: int | None = None
     eval_steps: int | None = None
     logging_steps: int | None = None
+    packing: bool | None = None
+    eval_packing: bool | None = None
+    attn_implementation: str | None = None
     load_best_model_at_end: bool | None = None
     metric_for_best_model: str | None = None
     greater_is_better: bool | None = None
@@ -67,6 +71,11 @@ def load_training_config(path: Path) -> TrainingConfig:
         logging_steps=int(data["logging_steps"])
         if data.get("logging_steps") is not None
         else None,
+        packing=bool(data["packing"]) if data.get("packing") is not None else None,
+        eval_packing=bool(data["eval_packing"])
+        if data.get("eval_packing") is not None
+        else None,
+        attn_implementation=data.get("attn_implementation"),
         load_best_model_at_end=(
             bool(data["load_best_model_at_end"])
             if data.get("load_best_model_at_end") is not None
@@ -106,3 +115,17 @@ def configure_wandb_environment(config: TrainingConfig) -> None:
         os.environ.setdefault("WANDB_NAME", config.run_name)
     if config.wandb_mode:
         os.environ.setdefault("WANDB_MODE", config.wandb_mode)
+
+
+def resolve_attention_implementation(config: TrainingConfig) -> str | None:
+    if config.attn_implementation:
+        if config.attn_implementation == "flash_attention_2" and not has_flash_attention_2():
+            return "sdpa"
+        return config.attn_implementation
+    if has_flash_attention_2():
+        return "flash_attention_2"
+    return "sdpa"
+
+
+def has_flash_attention_2() -> bool:
+    return importlib.util.find_spec("flash_attn") is not None
