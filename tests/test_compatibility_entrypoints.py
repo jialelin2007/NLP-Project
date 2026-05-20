@@ -46,11 +46,15 @@ def test_only_canonical_script_entrypoints_exist() -> None:
         "scripts/evaluation/evaluate_translation.py",
         "scripts/models/inspect_local_model.py",
         "scripts/training/train_sft.py",
+    ]
+    removed_smoke_script_paths = [
         "scripts/training/run_smoke_test.sh",
         "scripts/training/run_qwen3_32b_smoke.sh",
     ]
 
     for script_path in legacy_script_paths:
+        assert not Path(script_path).exists(), script_path
+    for script_path in removed_smoke_script_paths:
         assert not Path(script_path).exists(), script_path
     for script_path in script_paths:
         assert Path(script_path).is_file(), script_path
@@ -64,8 +68,6 @@ def test_only_canonical_config_paths_exist() -> None:
     ]
     config_paths = [
         "configs/deepspeed/zero3_bf16.json",
-        "configs/training/qwen3_32b_stage1_smoke.yaml",
-        "configs/training/qwen3_32b_stage1_8gpu_smoke.yaml",
     ]
 
     for config_path in legacy_config_paths:
