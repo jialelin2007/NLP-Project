@@ -35,6 +35,20 @@ dependencies = [
     "wandb>=0.19.11",
 ]
 
+[project.scripts]
+nlp-prepare-stage1-data = "nlp_project.cli.prepare_stage1_data:main"
+nlp-validate-sft-data = "nlp_project.cli.validate_sft_data:main"
+nlp-evaluate-translation = "nlp_project.cli.evaluate_translation:main"
+nlp-inspect-local-model = "nlp_project.cli.inspect_local_model:main"
+nlp-train-sft = "nlp_project.cli.train_sft:main"
+
+[build-system]
+requires = ["setuptools>=80.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
 [project.optional-dependencies]
 vllm = [
     "vllm>=0.9.0",

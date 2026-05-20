@@ -5,6 +5,11 @@ from pathlib import Path
 
 def test_canonical_functional_modules_are_importable() -> None:
     module_names = [
+        "nlp_project.cli.prepare_stage1_data",
+        "nlp_project.cli.validate_sft_data",
+        "nlp_project.cli.evaluate_translation",
+        "nlp_project.cli.inspect_local_model",
+        "nlp_project.cli.train_sft",
         "nlp_project.data.processing",
         "nlp_project.data.sft_format",
         "nlp_project.evaluation.metrics",
@@ -46,8 +51,6 @@ def test_only_canonical_script_entrypoints_exist() -> None:
         "scripts/evaluation/evaluate_translation.py",
         "scripts/models/inspect_local_model.py",
         "scripts/training/train_sft.py",
-        "scripts/training/run_smoke_test.sh",
-        "scripts/training/run_qwen3_32b_smoke.sh",
     ]
 
     for script_path in legacy_script_paths:
@@ -64,11 +67,25 @@ def test_only_canonical_config_paths_exist() -> None:
     ]
     config_paths = [
         "configs/deepspeed/zero3_bf16.json",
-        "configs/training/qwen3_32b_stage1_smoke.yaml",
-        "configs/training/qwen3_32b_stage1_8gpu_smoke.yaml",
     ]
 
     for config_path in legacy_config_paths:
         assert not Path(config_path).exists(), config_path
     for config_path in config_paths:
         assert Path(config_path).is_file(), config_path
+
+
+def test_python_script_entrypoints_do_not_mutate_import_path() -> None:
+    script_paths = [
+        Path("scripts/data/prepare_stage1_data.py"),
+        Path("scripts/data/validate_sft_data.py"),
+        Path("scripts/evaluation/evaluate_translation.py"),
+        Path("scripts/models/inspect_local_model.py"),
+        Path("scripts/training/train_sft.py"),
+    ]
+
+    for script_path in script_paths:
+        source = script_path.read_text(encoding="utf-8")
+        assert "sys.path" not in source, script_path
+        assert "parents[" not in source, script_path
+        assert "# noqa: E402" not in source, script_path
