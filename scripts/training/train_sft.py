@@ -12,7 +12,10 @@ from datasets import load_dataset  # noqa: E402
 from transformers import AutoModelForCausalLM, AutoTokenizer  # noqa: E402
 from trl import SFTConfig, SFTTrainer  # noqa: E402
 
-from nlp_project.training.config import load_training_config  # noqa: E402
+from nlp_project.training.config import (  # noqa: E402
+    configure_wandb_environment,
+    load_training_config,
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -26,6 +29,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     cfg = load_training_config(args.config)
+    configure_wandb_environment(cfg)
     model_name = args.model_name_or_path or cfg.model_name_or_path
     cfg.output_dir.mkdir(parents=True, exist_ok=True)
     if cfg.logging_dir:
@@ -58,14 +62,23 @@ def main() -> None:
         gradient_accumulation_steps=cfg.gradient_accumulation_steps,
         learning_rate=cfg.learning_rate,
         bf16=cfg.bf16,
-        logging_steps=1,
-        save_steps=cfg.max_steps,
+        lr_scheduler_type=cfg.lr_scheduler_type or "linear",
+        warmup_ratio=cfg.warmup_ratio or 0.0,
+        weight_decay=cfg.weight_decay or 0.0,
+        max_grad_norm=cfg.max_grad_norm or 1.0,
+        logging_steps=cfg.logging_steps or 1,
+        save_steps=cfg.save_steps or cfg.max_steps,
         save_total_limit=cfg.save_total_limit,
-        eval_strategy="no",
+        eval_strategy="steps" if cfg.eval_steps else "no",
+        eval_steps=cfg.eval_steps,
+        load_best_model_at_end=cfg.load_best_model_at_end or False,
+        metric_for_best_model=cfg.metric_for_best_model,
+        greater_is_better=cfg.greater_is_better,
+        seed=cfg.seed,
         logging_dir=str(cfg.logging_dir) if cfg.logging_dir else None,
         max_length=cfg.max_seq_length,
         deepspeed=None if args.no_deepspeed or cfg.deepspeed is None else str(cfg.deepspeed),
-        report_to=[],
+        report_to=cfg.report_to,
         run_name=cfg.run_name,
         assistant_only_loss=True,
     )
@@ -74,6 +87,7 @@ def main() -> None:
         model=model,
         args=training_args,
         train_dataset=dataset["train"],
+        eval_dataset=dataset["validation"],
         processing_class=tokenizer,
     )
     trainer.train()

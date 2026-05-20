@@ -4,6 +4,11 @@ validation_file: data/processed/stage1/sft/validation.jsonl
 output_dir: runs/checkpoints/qwen3_32b_stage2_full
 logging_dir: runs/logs/qwen3_32b_stage2_full
 run_name: qwen3_32b_stage2_full
+report_to:
+  - wandb
+wandb_project: qwen-paper-translation-sft
+wandb_run_name: qwen3_32b_stage2_full
+wandb_mode: online
 save_total_limit: 2
 max_seq_length: 4096
 max_steps: 1000
@@ -13,3 +18,14 @@ learning_rate: 0.000005
 bf16: true
 gradient_checkpointing: true
 deepspeed: configs/deepspeed/zero3_bf16.json
+lr_scheduler_type: cosine
+warmup_ratio: 0.03
+weight_decay: 0.05
+max_grad_norm: 1.0
+save_steps: 500
+eval_steps: 500
+logging_steps: 50
+load_best_model_at_end: true
+metric_for_best_model: eval_loss
+greater_is_better: false
+seed: 42

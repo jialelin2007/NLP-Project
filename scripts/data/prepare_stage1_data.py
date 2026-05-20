@@ -22,7 +22,7 @@ from nlp_project.data.processing import (  # noqa: E402
     write_jsonl,
 )
 
-ENGINEERING_CSL_CATEGORIES = {"工学", "理学", "医学", "管理学", "农学"}
+ENGINEERING_CSL_CATEGORIES = {"工学", "理学"}
 
 
 def parse_args() -> argparse.Namespace:
