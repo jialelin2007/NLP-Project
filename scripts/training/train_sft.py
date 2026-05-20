@@ -8,7 +8,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 
-from datasets import load_dataset  # noqa: E402
 from transformers import AutoModelForCausalLM, AutoTokenizer  # noqa: E402
 from trl import SFTConfig, SFTTrainer  # noqa: E402
 
@@ -16,6 +15,7 @@ from nlp_project.training.config import (  # noqa: E402
     configure_wandb_environment,
     load_training_config,
 )
+from nlp_project.training.data import load_sft_message_datasets  # noqa: E402
 
 
 def parse_args() -> argparse.Namespace:
@@ -42,10 +42,7 @@ def main() -> None:
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
-    dataset = load_dataset(
-        "json",
-        data_files={"train": str(cfg.train_file), "validation": str(cfg.validation_file)},
-    )
+    dataset = load_sft_message_datasets(cfg.train_file, cfg.validation_file)
 
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
