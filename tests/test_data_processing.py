@@ -80,6 +80,29 @@ def test_is_valid_translation_pair_filters_empty_short_ratio_and_self_talk() -> 
     assert not is_valid_translation_pair("x " * 200, "短译文")
 
 
+def test_is_valid_translation_pair_requires_simplified_chinese_target() -> None:
+    assert is_valid_translation_pair(
+        "Transformers are widely used in machine translation.",
+        "Transformer 被广泛用于机器翻译。",
+    )
+    assert is_valid_translation_pair(
+        "The proposed method significantly improves translation quality.",
+        "所提出的方法显著提升了翻译质量。",
+    )
+    assert not is_valid_translation_pair(
+        "Transformers are widely used in machine translation.",
+        "Transformer 被廣泛應用於機器翻譯。",
+    )
+    assert not is_valid_translation_pair(
+        "Transformers are widely used in machine translation.",
+        "トランスフォーマーは機械翻訳で広く使われています。",
+    )
+    assert not is_valid_translation_pair(
+        "Transformers are widely used in machine translation.",
+        "Transformers are widely used in machine translation.",
+    )
+
+
 def test_build_sft_record_uses_non_thinking_translation_prompt() -> None:
     example = {
         "id": "example-1",
