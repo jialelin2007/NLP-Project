@@ -96,6 +96,9 @@ def test_clean_arxiv_html_removes_tables_figures_references_math_and_inline_cita
         <section>
           <h2>Introduction</h2>
           <p>First paragraph (Smith et al., 2020) with <span class="ltx_Math">a=b</span>.</p>
+          <p>follow MOTIVE [ wu2026motion ] for video generation and motion transfer
+          experiments, where the baseline remains useful for comparing temporal
+          coherence, prompt alignment, and controllable scene dynamics.</p>
           <figure><img src="x.png" alt="img"><figcaption>Figure 1</figcaption></figure>
           <table><tr><td>cell</td></tr></table>
           <div class="ltx_bibliography">References</div>
@@ -110,10 +113,12 @@ def test_clean_arxiv_html_removes_tables_figures_references_math_and_inline_cita
     assert "Figure 1" not in json.dumps(doc, ensure_ascii=False)
     assert "[12]" not in json.dumps(doc, ensure_ascii=False)
     assert "Smith et al., 2020" not in json.dumps(doc, ensure_ascii=False)
+    assert "wu2026motion" not in json.dumps(doc, ensure_ascii=False)
     assert "x+y" not in json.dumps(doc, ensure_ascii=False)
     assert doc["title"] == "Title"
     assert doc["sections"][0]["heading"] == "Abstract"
     assert doc["sections"][0]["paragraphs"][0] == "Abstract with citation and."
+    assert "follow MOTIVE for video generation" in json.dumps(doc, ensure_ascii=False)
 
 
 def test_split_document_into_segments_preserves_abstract_and_stays_within_bounds() -> None:

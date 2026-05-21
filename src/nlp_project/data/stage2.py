@@ -44,6 +44,7 @@ DROP_HEADING_PREFIXES = (
 
 INLINE_CITATION_PATTERNS = [
     re.compile(r"\[(?:\s*\d+\s*(?:[-,;]\s*\d+\s*)*)\]"),
+    re.compile(r"\[\s*[A-Za-z][A-Za-z0-9:_./-]*\d+[A-Za-z0-9:_./-]*\s*\]"),
     re.compile(r"\((?:[A-Z][A-Za-z'`-]+(?:\s+et\s+al\.)?|\w+\s+and\s+\w+),?\s+\d{4}[a-z]?\)"),
 ]
 
