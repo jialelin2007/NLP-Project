@@ -27,6 +27,7 @@ htmlcov/
 /models/
 /assets/models/
 /runs/*
+wandb/
 
 # Keep directory placeholders
 !/data/raw/.gitkeep
