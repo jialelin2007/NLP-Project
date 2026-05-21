@@ -74,6 +74,34 @@ deepspeed: configs/deepspeed/zero3_bf16.json
     assert config.save_total_limit == 2
 
 
+def test_load_training_config_reads_resume_checkpoint(tmp_path: Path) -> None:
+    config_path = tmp_path / "config.yaml"
+    config_path.write_text(
+        """
+model_name_or_path: assets/models/Qwen3-32B
+train_file: data/processed/stage1/sft/train.jsonl
+validation_file: data/processed/stage1/sft/validation.jsonl
+output_dir: runs/checkpoints/qwen3_32b_stage1_bestval_from1000
+resume_from_checkpoint: runs/checkpoints/qwen3_32b_stage1_full/checkpoint-1000
+max_seq_length: 4096
+max_steps: 1500
+per_device_train_batch_size: 1
+gradient_accumulation_steps: 8
+learning_rate: 0.000003
+bf16: true
+gradient_checkpointing: true
+""",
+        encoding="utf-8",
+    )
+
+    config = load_training_config(config_path)
+
+    assert config.resume_from_checkpoint == Path(
+        "runs/checkpoints/qwen3_32b_stage1_full/checkpoint-1000"
+    )
+    assert config.max_steps == 1500
+
+
 def test_load_training_config_reads_scheduler_stability_and_eval_fields(tmp_path: Path) -> None:
     config_path = tmp_path / "config.yaml"
     config_path.write_text(

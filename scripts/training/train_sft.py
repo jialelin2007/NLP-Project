@@ -24,6 +24,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run Qwen translation SFT training.")
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--model-name-or-path", type=str, default=None)
+    parser.add_argument("--resume-from-checkpoint", type=Path, default=None)
     parser.add_argument("--no-deepspeed", action="store_true")
     return parser.parse_args()
 
@@ -39,6 +40,9 @@ def main() -> None:
 
     print(f"model_name_or_path={model_name}")
     print(f"output_dir={cfg.output_dir}")
+    resume_from_checkpoint = args.resume_from_checkpoint or cfg.resume_from_checkpoint
+    if resume_from_checkpoint:
+        print(f"resume_from_checkpoint={resume_from_checkpoint}")
 
     tokenizer = load_tokenizer(model_name)
     if tokenizer.pad_token is None:
@@ -93,7 +97,9 @@ def main() -> None:
         eval_dataset=dataset["validation"],
         processing_class=tokenizer,
     )
-    trainer.train()
+    trainer.train(
+        resume_from_checkpoint=str(resume_from_checkpoint) if resume_from_checkpoint else None
+    )
     trainer.save_model(str(cfg.output_dir))
     tokenizer.save_pretrained(str(cfg.output_dir))
 

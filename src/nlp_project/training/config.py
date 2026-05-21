@@ -36,6 +36,7 @@ class TrainingConfig:
     greater_is_better: bool | None = None
     seed: int | None = None
     deepspeed: Path | None = None
+    resume_from_checkpoint: Path | None = None
     logging_dir: Path | None = None
     run_name: str | None = None
     save_total_limit: int | None = None
@@ -89,6 +90,9 @@ def load_training_config(path: Path) -> TrainingConfig:
         ),
         seed=int(data["seed"]) if data.get("seed") is not None else None,
         deepspeed=Path(data["deepspeed"]) if data.get("deepspeed") else None,
+        resume_from_checkpoint=(
+            Path(data["resume_from_checkpoint"]) if data.get("resume_from_checkpoint") else None
+        ),
         logging_dir=Path(data["logging_dir"]) if data.get("logging_dir") else None,
         run_name=data.get("run_name"),
         save_total_limit=int(data["save_total_limit"])
