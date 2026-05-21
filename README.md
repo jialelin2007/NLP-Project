@@ -106,6 +106,26 @@ data/processed/stage2/segments/all.jsonl
 This Stage 2 segment pipeline stops before teacher-model translation and SFT
 chat conversion.
 
+Translate Stage 2 segments with a teacher model through an OpenAI Responses
+compatible endpoint:
+
+```bash
+export OPENAI_API_KEY=<your-api-key>
+uv run python scripts/data/stage2_translate_teacher.py \
+  --input data/processed/stage2/segments/all.jsonl \
+  --output-dir data/processed/stage2/sft \
+  --base-url https://api.vip1129.cc/v1 \
+  --model gpt-5.4 \
+  --max-workers 3 \
+  --limit 50
+```
+
+The translation script is resumable. It skips segment IDs already present in
+`data/processed/stage2/sft/{train,validation,test}.jsonl`, writes failed
+requests to `data/processed/stage2/sft/errors.jsonl`, and caps concurrency at
+5 even if a larger `--max-workers` value is provided. Use `--limit` for the
+first smoke run, then rerun without it for the full Stage 2 translation pass.
+
 The default Stage 2 paper discovery path is OpenAlex-first, using arXiv as a
 source filter and OpenAlex citation counts. arXiv export API discovery is kept
 only as a fallback through `--discovery-source arxiv-api`. The collection step
