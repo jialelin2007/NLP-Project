@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from json import JSONDecodeError
 from pathlib import Path
 from typing import Any, Literal
 
@@ -10,6 +11,12 @@ import httpx
 from nlp_project.data.processing import SYSTEM_PROMPT, USER_PROMPT_PREFIX, build_sft_record
 
 ErrorClassification = Literal["retryable", "permanent", "fatal"]
+
+
+class TeacherResponseError(ValueError):
+    def __init__(self, message: str, classification: ErrorClassification = "fatal") -> None:
+        super().__init__(message)
+        self.classification = classification
 
 
 class ResponsesTeacherClient:
@@ -45,7 +52,15 @@ class ResponsesTeacherClient:
             json=payload,
         )
         response.raise_for_status()
-        return extract_responses_text(response.json())
+        try:
+            payload = response.json()
+        except JSONDecodeError as exc:
+            body_preview = response.text[:500].strip()
+            raise TeacherResponseError(
+                f"teacher response was not valid JSON: {body_preview}",
+                "retryable",
+            ) from exc
+        return extract_responses_text(payload)
 
     def close(self) -> None:
         if self._owns_client:
@@ -68,7 +83,7 @@ def extract_responses_text(payload: dict[str, Any]) -> str:
                 texts.append(part["text"])
     text = "\n".join(part.strip() for part in texts if part.strip()).strip()
     if not text:
-        raise ValueError("teacher response did not contain output text")
+        raise TeacherResponseError("teacher response did not contain output text", "retryable")
     return text
 
 
@@ -102,6 +117,8 @@ def select_shard(segment: dict[str, Any], *, num_shards: int) -> int:
 
 
 def classify_teacher_error(exc: BaseException) -> ErrorClassification:
+    if isinstance(exc, TeacherResponseError):
+        return exc.classification
     if isinstance(exc, httpx.HTTPStatusError):
         status_code = exc.response.status_code
         if status_code in {404, 406}:

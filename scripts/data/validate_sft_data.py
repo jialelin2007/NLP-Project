@@ -9,28 +9,31 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 
-from nlp_project.data.sft_format import (  # noqa: E402
-    SFTValidationError,
-    iter_jsonl,
-    validate_sft_record,
-)
+from nlp_project.data.sft_format import SFTValidationError, iter_jsonl, validate_sft_record  # noqa: E402,I001
 
 
-def parse_args() -> argparse.Namespace:
+DEFAULT_SPLIT_FILES = ("train.jsonl", "validation.jsonl", "test.jsonl")
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Validate SFT chat JSONL files.")
     parser.add_argument("--input-dir", type=Path, default=Path("data/processed/stage1/sft"))
     parser.add_argument(
         "--output", type=Path, default=Path("runs/eval/data_profile/sft_validation.json")
     )
-    return parser.parse_args()
+    parser.add_argument("--files", nargs="+", default=list(DEFAULT_SPLIT_FILES))
+    return parser.parse_args(argv)
 
 
-def main() -> None:
-    args = parse_args()
+def main(argv: list[str] | None = None) -> None:
+    args = parse_args(argv)
     summary: dict[str, int] = {}
     errors = []
 
-    for path in sorted(args.input_dir.glob("*.jsonl")):
+    for filename in args.files:
+        path = args.input_dir / filename
+        if not path.is_file():
+            continue
         count = 0
         for line_number, record in iter_jsonl(path):
             try:

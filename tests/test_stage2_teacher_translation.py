@@ -9,6 +9,7 @@ import httpx
 from nlp_project.data.sft_format import validate_sft_record
 from nlp_project.data.stage2_translation import (
     ResponsesTeacherClient,
+    TeacherResponseError,
     classify_teacher_error,
     make_teacher_sft_record,
     select_shard,
@@ -107,6 +108,29 @@ def test_responses_teacher_client_posts_responses_payload_and_extracts_text() ->
     )
 
 
+def test_responses_teacher_client_marks_non_json_response_retryable() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, text="<html>gateway overload</html>")
+
+    transport = httpx.MockTransport(handler)
+    http_client = httpx.Client(transport=transport)
+    client = ResponsesTeacherClient(
+        base_url="https://api.vip1129.cc/v1",
+        api_key="secret",
+        model="gpt-5.4",
+        http_client=http_client,
+    )
+
+    try:
+        client.translate("Transformers are effective for machine translation.")
+    except TeacherResponseError as exc:
+        assert exc.classification == "retryable"
+        assert "not valid JSON" in str(exc)
+        assert "gateway overload" in str(exc)
+    else:
+        raise AssertionError("expected TeacherResponseError")
+
+
 def test_classify_teacher_error_distinguishes_retryable_and_permanent_statuses() -> None:
     request = httpx.Request("POST", "https://api.example.test/v1/responses")
 
@@ -143,6 +167,8 @@ def test_classify_teacher_error_distinguishes_retryable_and_permanent_statuses()
         == "permanent"
     )
     assert classify_teacher_error(httpx.ReadTimeout("timeout")) == "retryable"
+
+    assert classify_teacher_error(TeacherResponseError("bad json", "retryable")) == "retryable"
 
 
 def test_stage2_translate_teacher_writes_split_outputs_and_skips_completed(
