@@ -71,6 +71,7 @@ def main() -> None:
                 all_entries.append(entry)
                 work = fetch_openalex_work(
                     entry.arxiv_base_id,
+                    title=entry.title,
                     client=client,
                     mailto=args.openalex_mailto,
                 )

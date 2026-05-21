@@ -108,11 +108,17 @@ def parse_openalex_work(record: dict[str, Any]) -> OpenAlexWork:
     return OpenAlexWork(
         arxiv_id=normalize_arxiv_id(ids.get("arxiv")),
         cited_by_count=int(record.get("cited_by_count") or 0),
-        title=record.get("title"),
+        title=record.get("title") or record.get("display_name"),
         doi=record.get("doi"),
         openalex_id=record.get("id"),
         publication_date=record.get("publication_date"),
     )
+
+
+def _normalize_search_text(value: str | None) -> str:
+    if not value:
+        return ""
+    return re.sub(r"\s+", " ", value).strip().casefold()
 
 
 def parse_arxiv_feed(xml_text: str) -> list[ArxivEntry]:
@@ -204,10 +210,11 @@ def _arxiv_version_number(arxiv_id: str) -> int:
 def fetch_openalex_work(
     arxiv_base_id: str,
     *,
+    title: str | None = None,
     client: httpx.Client | None = None,
     mailto: str | None = None,
 ) -> OpenAlexWork | None:
-    params: dict[str, str] = {"filter": f"ids.arxiv:https://arxiv.org/abs/{arxiv_base_id}"}
+    params: dict[str, str] = {"search": title or arxiv_base_id}
     if mailto:
         params["mailto"] = mailto
     close_client = client is None
@@ -219,7 +226,18 @@ def fetch_openalex_work(
         results = response.json().get("results") or []
         if not results:
             return None
-        return parse_openalex_work(results[0])
+        target_title = _normalize_search_text(title)
+        if target_title:
+            exact_matches = [
+                result
+                for result in results
+                if _normalize_search_text(result.get("display_name")) == target_title
+            ]
+            if exact_matches:
+                return parse_openalex_work(
+                    max(exact_matches, key=lambda item: item.get("cited_by_count") or 0)
+                )
+        return parse_openalex_work(max(results, key=lambda item: item.get("cited_by_count") or 0))
     finally:
         if close_client:
             client.close()

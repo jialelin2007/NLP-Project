@@ -3,10 +3,13 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import httpx
+
 from nlp_project.data.stage2 import (
     PaperCandidate,
     build_segments_for_document,
     clean_arxiv_html,
+    fetch_openalex_work,
     make_stage2_segment_record,
     parse_openalex_work,
     process_html_files,
@@ -30,6 +33,56 @@ def test_parse_openalex_work_reads_citation_count_and_arxiv_id() -> None:
     assert work.arxiv_id == "2401.12345v2"
     assert work.cited_by_count == 42
     assert work.title == "Paper title"
+
+
+def test_fetch_openalex_work_uses_title_search_and_picks_exact_match() -> None:
+    requested_urls: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requested_urls.append(str(request.url))
+        assert request.url.params.get("search") == "Attention Is All You Need"
+        assert "ids.arxiv" not in str(request.url)
+        return httpx.Response(
+            200,
+            json={
+                "results": [
+                    {
+                        "id": "https://openalex.org/W3163652268",
+                        "display_name": "Attention Is All You Need In Speech Separation",
+                        "cited_by_count": 608,
+                        "ids": {
+                            "openalex": "https://openalex.org/W3163652268",
+                            "doi": "https://doi.org/10.1109/icassp39728.2021.9413901",
+                        },
+                        "publication_date": "2021-06-01",
+                    },
+                    {
+                        "id": "https://openalex.org/W2626778328",
+                        "display_name": "Attention Is All You Need",
+                        "cited_by_count": 6543,
+                        "ids": {
+                            "openalex": "https://openalex.org/W2626778328",
+                            "doi": "https://doi.org/10.65215/2q58a426",
+                        },
+                        "publication_date": "2017-06-12",
+                    },
+                ]
+            },
+        )
+
+    client = httpx.Client(transport=httpx.MockTransport(handler), follow_redirects=True)
+
+    work = fetch_openalex_work(
+        "1706.03762",
+        title="Attention Is All You Need",
+        client=client,
+    )
+
+    assert requested_urls
+    assert work is not None
+    assert work.title == "Attention Is All You Need"
+    assert work.cited_by_count == 6543
+    assert work.arxiv_id is None
 
 
 def test_clean_arxiv_html_removes_tables_figures_references_math_and_inline_citations() -> None:
