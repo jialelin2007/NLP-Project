@@ -6,6 +6,8 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from tqdm.auto import tqdm
+
 from nlp_project.data.processing import normalize_text, split_by_stable_hash, write_jsonl
 from nlp_project.data.stage2_collection import PaperCandidate, load_candidates
 from nlp_project.data.stage2_html import build_stage2_document
@@ -231,15 +233,27 @@ def write_stage2_segments(
     documents_dir: Path,
     segments_path: Path,
     build_document: Callable[[PaperCandidate, str], dict[str, Any]] = build_stage2_document,
+    show_progress: bool = False,
 ) -> dict[str, int | str]:
     candidates = load_candidates(candidates_path)
     all_segments: list[dict[str, Any]] = []
     papers_processed = 0
     papers_missing_html = 0
-    for candidate in candidates:
+    progress = (
+        tqdm(candidates, desc="Extracting Stage 2 HTML", unit="paper")
+        if show_progress
+        else candidates
+    )
+    for candidate in progress:
         html_path = html_dir / f"{candidate.arxiv_base_id}.html"
         if not html_path.is_file():
             papers_missing_html += 1
+            if show_progress:
+                progress.set_postfix(
+                    processed=papers_processed,
+                    missing=papers_missing_html,
+                    segments=len(all_segments),
+                )
             continue
         html_text = html_path.read_text(encoding="utf-8")
         document = build_document(candidate, html_text)
@@ -247,6 +261,12 @@ def write_stage2_segments(
         segments = build_segments_for_document(candidate, document)
         all_segments.extend(segments)
         papers_processed += 1
+        if show_progress:
+            progress.set_postfix(
+                processed=papers_processed,
+                missing=papers_missing_html,
+                segments=len(all_segments),
+            )
     segments_written = write_jsonl(segments_path, all_segments)
     return {
         "papers_total": len(candidates),

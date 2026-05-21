@@ -27,6 +27,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--segments-path", type=Path, default=Path("data/processed/stage2/segments/all.jsonl")
     )
+    parser.add_argument("--no-progress", action="store_true", help="Disable the progress bar.")
     return parser.parse_args()
 
 
@@ -38,6 +39,7 @@ def main() -> None:
         documents_dir=args.documents_dir,
         segments_path=args.segments_path,
         build_document=build_stage2_document,
+        show_progress=not args.no_progress,
     )
     print(json.dumps(summary, ensure_ascii=False, indent=2))
 
