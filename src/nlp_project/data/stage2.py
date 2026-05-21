@@ -292,7 +292,6 @@ def _remove_unwanted_nodes(root: Any) -> dict[str, int]:
             "//figure|//img|//*[contains(concat(' ', normalize-space(@class), ' '), "
             "' ltx_figure ')]"
         ),
-        "math": "//math|//*[contains(concat(' ', normalize-space(@class), ' '), ' ltx_Math ')]",
         "references": (
             "//*[contains(concat(' ', normalize-space(@class), ' '), ' ltx_bibliography ')]"
             "|//*[contains(concat(' ', normalize-space(@class), ' '), 'ltx_biblist')]"
@@ -305,6 +304,15 @@ def _remove_unwanted_nodes(root: Any) -> dict[str, int]:
         counts[name] = len(nodes)
         for node in nodes:
             _drop_node_preserving_tail(node)
+    math_nodes = root.xpath(
+        "//math|//*[contains(concat(' ', normalize-space(@class), ' '), ' ltx_Math ')]"
+    )
+    counts["math"] = len(math_nodes)
+    for node in math_nodes:
+        for annotation in node.xpath(".//annotation"):
+            parent = annotation.getparent()
+            if parent is not None:
+                parent.remove(annotation)
     return counts
 
 

@@ -85,7 +85,7 @@ def test_fetch_openalex_work_uses_title_search_and_picks_exact_match() -> None:
     assert work.arxiv_id is None
 
 
-def test_clean_arxiv_html_removes_tables_figures_references_math_and_inline_citations() -> None:
+def test_clean_arxiv_html_keeps_inline_math_and_removes_noise() -> None:
     html = """
     <html>
       <body>
@@ -95,7 +95,9 @@ def test_clean_arxiv_html_removes_tables_figures_references_math_and_inline_cita
         </div>
         <section>
           <h2>Introduction</h2>
-          <p>First paragraph (Smith et al., 2020) with <span class="ltx_Math">a=b</span>.</p>
+          <p>First paragraph (Smith et al., 2020) with <span class="ltx_Math">a=b</span> in the
+          displayed equation context. This additional sentence keeps the paragraph long
+          enough for Stage 2 extraction while preserving the inline formula for translation.</p>
           <p>follow MOTIVE [ wu2026motion ] for video generation and motion transfer
           experiments, where the baseline remains useful for comparing temporal
           coherence, prompt alignment, and controllable scene dynamics.</p>
@@ -114,10 +116,11 @@ def test_clean_arxiv_html_removes_tables_figures_references_math_and_inline_cita
     assert "[12]" not in json.dumps(doc, ensure_ascii=False)
     assert "Smith et al., 2020" not in json.dumps(doc, ensure_ascii=False)
     assert "wu2026motion" not in json.dumps(doc, ensure_ascii=False)
-    assert "x+y" not in json.dumps(doc, ensure_ascii=False)
+    assert "x+y" in json.dumps(doc, ensure_ascii=False)
+    assert "a=b" in json.dumps(doc, ensure_ascii=False)
     assert doc["title"] == "Title"
     assert doc["sections"][0]["heading"] == "Abstract"
-    assert doc["sections"][0]["paragraphs"][0] == "Abstract with citation and."
+    assert doc["sections"][0]["paragraphs"][0] == "Abstract with citation and x+y."
     assert "follow MOTIVE for video generation" in json.dumps(doc, ensure_ascii=False)
 
 
