@@ -9,7 +9,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 
-from nlp_project.data.stage2 import process_html_files  # noqa: E402
+from nlp_project.data.stage2_html import build_stage2_document  # noqa: E402
+from nlp_project.data.stage2_segments import write_stage2_segments  # noqa: E402
 
 
 def parse_args() -> argparse.Namespace:
@@ -31,11 +32,12 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    summary = process_html_files(
+    summary = write_stage2_segments(
         candidates_path=args.accepted_papers,
         html_dir=args.html_dir,
         documents_dir=args.documents_dir,
         segments_path=args.segments_path,
+        build_document=build_stage2_document,
     )
     print(json.dumps(summary, ensure_ascii=False, indent=2))
 

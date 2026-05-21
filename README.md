@@ -80,10 +80,15 @@ Build Stage 2 arXiv CS/AI paper segments before teacher translation:
 
 ```bash
 uv run python scripts/data/stage2_collect_papers.py \
+  --discovery-source openalex \
   --target-papers 2000 \
   --min-citations 21 \
-  --openalex-mailto you@example.com
-uv run python scripts/data/stage2_fetch_html.py
+  --openalex-mailto you@example.com \
+  --checkpoint-every-pages 1 \
+  --request-sleep 0.2
+uv run python scripts/data/stage2_fetch_html.py \
+  --max-workers 3 \
+  --request-sleep 1.0
 uv run python scripts/data/stage2_extract_segments.py
 ```
 
@@ -100,6 +105,15 @@ data/processed/stage2/segments/all.jsonl
 
 This Stage 2 segment pipeline stops before teacher-model translation and SFT
 chat conversion.
+
+The default Stage 2 paper discovery path is OpenAlex-first, using arXiv as a
+source filter and OpenAlex citation counts. arXiv export API discovery is kept
+only as a fallback through `--discovery-source arxiv-api`. The collection step
+does not check arXiv HTML by default; unavailable HTML is recorded and skipped
+in the independent fetch step. If the collection job is interrupted, rerun the
+same `stage2_collect_papers.py` command. It resumes from the existing
+`data/raw/stage2/*.jsonl` and
+`data/raw/stage2/collection_state.json` files.
 
 ## Training
 
