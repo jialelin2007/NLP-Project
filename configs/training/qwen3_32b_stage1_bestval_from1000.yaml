@@ -1,0 +1,34 @@
+model_name_or_path: runs/checkpoints/qwen3_32b_stage1_full/checkpoint-1000
+train_file: data/processed/stage1/sft/train.jsonl
+validation_file: data/processed/stage1/sft/validation.jsonl
+output_dir: runs/checkpoints/qwen3_32b_stage1_bestval_from1000
+logging_dir: runs/logs/qwen3_32b_stage1_bestval_from1000
+run_name: qwen3_32b_stage1_bestval_from1000
+report_to:
+  - wandb
+wandb_project: qwen-paper-translation-sft
+wandb_run_name: qwen3_32b_stage1_bestval_from1000
+wandb_mode: online
+save_total_limit: 5
+max_seq_length: 4096
+max_steps: 400
+per_device_train_batch_size: 2
+gradient_accumulation_steps: 4
+learning_rate: 0.000003
+bf16: true
+gradient_checkpointing: true
+deepspeed: configs/deepspeed/zero3_bf16.json
+lr_scheduler_type: cosine
+warmup_ratio: 0.03
+weight_decay: 0.05
+max_grad_norm: 1.0
+save_steps: 100
+eval_steps: 50
+logging_steps: 10
+load_best_model_at_end: true
+metric_for_best_model: eval_loss
+greater_is_better: false
+seed: 42
+packing: true
+eval_packing: false
+attn_implementation: flash_attention_2
