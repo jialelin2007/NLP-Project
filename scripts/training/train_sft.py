@@ -8,9 +8,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 
-from transformers import AutoModelForCausalLM, AutoTokenizer  # noqa: E402
+from transformers import AutoModelForCausalLM  # noqa: E402
 from trl import SFTConfig, SFTTrainer  # noqa: E402
 
+from nlp_project.models.tokenizer import load_tokenizer  # noqa: E402
 from nlp_project.training.config import (  # noqa: E402
     configure_wandb_environment,
     load_training_config,
@@ -39,7 +40,7 @@ def main() -> None:
     print(f"model_name_or_path={model_name}")
     print(f"output_dir={cfg.output_dir}")
 
-    tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+    tokenizer = load_tokenizer(model_name)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 

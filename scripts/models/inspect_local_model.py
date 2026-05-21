@@ -9,9 +9,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 
-from transformers import AutoConfig, AutoTokenizer  # noqa: E402
+from transformers import AutoConfig  # noqa: E402
 
 from nlp_project.models.inventory import inspect_local_model  # noqa: E402
+from nlp_project.models.tokenizer import load_tokenizer  # noqa: E402
 
 
 def parse_args() -> argparse.Namespace:
@@ -27,7 +28,7 @@ def main() -> None:
     result = summary.to_json_dict()
     if args.load_tokenizer:
         config = AutoConfig.from_pretrained(args.model_dir, trust_remote_code=True)
-        tokenizer = AutoTokenizer.from_pretrained(args.model_dir, trust_remote_code=True)
+        tokenizer = load_tokenizer(args.model_dir)
         result["model_type"] = config.model_type
         result["vocab_size"] = len(tokenizer)
         result["chat_template_present"] = bool(tokenizer.chat_template)
