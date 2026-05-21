@@ -76,8 +76,30 @@ data/processed/stage1/sft/test.jsonl
 runs/eval/data_profile/*.json
 ```
 
-Stage 2 CS/AI paper-specialization data should use the same intermediate and
-SFT schema under `data/processed/stage2/`.
+Build Stage 2 arXiv CS/AI paper segments before teacher translation:
+
+```bash
+uv run python scripts/data/stage2_collect_papers.py \
+  --target-papers 2000 \
+  --min-citations 21 \
+  --openalex-mailto you@example.com
+uv run python scripts/data/stage2_fetch_html.py
+uv run python scripts/data/stage2_extract_segments.py
+```
+
+Default Stage 2 segment-only outputs:
+
+```text
+data/raw/stage2/arxiv_candidates.jsonl
+data/raw/stage2/openalex_enriched.jsonl
+data/raw/stage2/accepted_papers.jsonl
+data/raw/stage2/html/*.html
+data/processed/stage2/documents/*.json
+data/processed/stage2/segments/all.jsonl
+```
+
+This Stage 2 segment pipeline stops before teacher-model translation and SFT
+chat conversion.
 
 ## Training
 
