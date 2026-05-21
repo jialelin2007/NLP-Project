@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -18,6 +19,34 @@ from nlp_project.training.config import (  # noqa: E402
     resolve_attention_implementation,
 )
 from nlp_project.training.data import load_sft_message_datasets  # noqa: E402
+
+
+def sync_resume_checkpoint_state(
+    resume_from_checkpoint: Path,
+    save_steps: int | None,
+    eval_steps: int | None,
+    logging_steps: int | None,
+) -> None:
+    state_path = resume_from_checkpoint / "trainer_state.json"
+    if not state_path.is_file():
+        return
+
+    state = json.loads(state_path.read_text(encoding="utf-8"))
+    changed = False
+    if save_steps is not None and state.get("save_steps") != save_steps:
+        state["save_steps"] = save_steps
+        changed = True
+    if eval_steps is not None and state.get("eval_steps") != eval_steps:
+        state["eval_steps"] = eval_steps
+        changed = True
+    if logging_steps is not None and state.get("logging_steps") != logging_steps:
+        state["logging_steps"] = logging_steps
+        changed = True
+    if changed:
+        state_path.write_text(
+            json.dumps(state, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
 
 
 def parse_args() -> argparse.Namespace:
@@ -42,6 +71,12 @@ def main() -> None:
     print(f"output_dir={cfg.output_dir}")
     resume_from_checkpoint = args.resume_from_checkpoint or cfg.resume_from_checkpoint
     if resume_from_checkpoint:
+        sync_resume_checkpoint_state(
+            resume_from_checkpoint,
+            cfg.save_steps,
+            cfg.eval_steps,
+            cfg.logging_steps,
+        )
         print(f"resume_from_checkpoint={resume_from_checkpoint}")
 
     tokenizer = load_tokenizer(model_name)
