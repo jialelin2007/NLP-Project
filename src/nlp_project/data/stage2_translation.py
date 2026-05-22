@@ -8,9 +8,18 @@ from typing import Any, Literal
 
 import httpx
 
-from nlp_project.data.processing import SYSTEM_PROMPT, USER_PROMPT_PREFIX, build_sft_record
+from nlp_project.data.processing import USER_PROMPT_PREFIX, build_sft_record
 
 ErrorClassification = Literal["retryable", "permanent", "fatal"]
+
+STAGE2_SYSTEM_PROMPT = (
+    "You are a professional academic translator. Translate English CS/AI paper text "
+    "into accurate, fluent, formal Chinese. Favor sense-for-sense translation over "
+    "literal word-for-word translation when the logic remains correct and the Chinese "
+    "can be made fluent. For technical terms, use Chinese(English) when a standard "
+    "Chinese equivalent exists; otherwise preserve the English term. Preserve equations, "
+    "citations, code, variable names, and LaTeX syntax. Do not add explanations."
+)
 
 
 class TeacherResponseError(ValueError):
@@ -26,28 +35,34 @@ class ResponsesTeacherClient:
         base_url: str,
         api_key: str,
         model: str,
+        reasoning_effort: str | None = None,
         http_client: httpx.Client | None = None,
         timeout: float = 180.0,
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.api_key = api_key
         self.model = model
+        self.reasoning_effort = reasoning_effort
         self._client = http_client or httpx.Client(timeout=timeout, follow_redirects=True)
         self._owns_client = http_client is None
 
     def translate(self, source: str) -> str:
         payload = {
             "model": self.model,
+            "stream": False,
             "input": [
-                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "system", "content": STAGE2_SYSTEM_PROMPT},
                 {"role": "user", "content": f"{USER_PROMPT_PREFIX}{source}"},
             ],
         }
+        if self.reasoning_effort:
+            payload["reasoning"] = {"effort": self.reasoning_effort}
         response = self._client.post(
             f"{self.base_url}/responses",
             headers={
                 "Authorization": f"Bearer {self.api_key}",
                 "Content-Type": "application/json",
+                "Accept": "application/json",
             },
             json=payload,
         )
@@ -102,6 +117,7 @@ def make_teacher_sft_record(
         },
     }
     record = build_sft_record(example)
+    record["messages"][0]["content"] = STAGE2_SYSTEM_PROMPT
     record["source"] = example["source"]
     record["target"] = example["target"]
     return record

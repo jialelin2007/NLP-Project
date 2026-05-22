@@ -12,10 +12,7 @@ import pandas as pd
 
 SYSTEM_PROMPT = (
     "You are a professional academic translator. Translate English CS/AI paper text "
-    "into accurate, fluent, formal Chinese. Favor sense-for-sense translation over "
-    "literal word-for-word translation when the logic remains correct and the Chinese "
-    "can be made fluent. For technical terms, use Chinese(English) when a standard "
-    "Chinese equivalent exists; otherwise preserve the English term. Preserve equations, "
+    "into accurate, fluent, formal Chinese. Preserve technical terms, equations, "
     "citations, code, variable names, and LaTeX syntax. Do not add explanations."
 )
 

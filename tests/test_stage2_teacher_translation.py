@@ -8,6 +8,7 @@ import httpx
 
 from nlp_project.data.sft_format import validate_sft_record
 from nlp_project.data.stage2_translation import (
+    STAGE2_SYSTEM_PROMPT,
     ResponsesTeacherClient,
     TeacherResponseError,
     classify_teacher_error,
@@ -55,6 +56,9 @@ def test_make_teacher_sft_record_preserves_source_target_and_metadata() -> None:
     assert record["target"] == "Transformer 对机器翻译很有效。"
     assert record["metadata"]["paper_id"] == "2401.12345v1"
     assert record["metadata"]["teacher_model"] == "gpt-5.4"
+    assert record["messages"][0]["content"] == STAGE2_SYSTEM_PROMPT
+    assert "Chinese(English)" in record["messages"][0]["content"]
+    assert "Favor sense-for-sense translation" in record["messages"][0]["content"]
     assert record["messages"][2]["content"] == "Transformer 对机器翻译很有效。"
 
 
@@ -102,10 +106,35 @@ def test_responses_teacher_client_posts_responses_payload_and_extracts_text() ->
 
     assert result == "Transformer 对机器翻译很有效。"
     assert requests[0]["model"] == "gpt-5.4"
+    assert requests[0]["stream"] is False
     assert requests[0]["input"][0]["role"] == "system"
+    assert requests[0]["input"][0]["content"] == STAGE2_SYSTEM_PROMPT
+    assert "preserve the English term" in requests[0]["input"][0]["content"]
     assert requests[0]["input"][1]["content"].endswith(
         "Transformers are effective for machine translation."
     )
+
+
+def test_responses_teacher_client_includes_reasoning_effort_when_set() -> None:
+    requests: list[dict] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(json.loads(request.content.decode("utf-8")))
+        return httpx.Response(200, json={"output_text": "Transformer 对机器翻译很有效。"})
+
+    transport = httpx.MockTransport(handler)
+    http_client = httpx.Client(transport=transport)
+    client = ResponsesTeacherClient(
+        base_url="https://api.vip1129.cc/v1",
+        api_key="secret",
+        model="gpt-5.4",
+        reasoning_effort="high",
+        http_client=http_client,
+    )
+
+    client.translate("Transformers are effective for machine translation.")
+
+    assert requests[0]["reasoning"] == {"effort": "high"}
 
 
 def test_responses_teacher_client_marks_non_json_response_retryable() -> None:

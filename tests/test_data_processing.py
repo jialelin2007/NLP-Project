@@ -119,10 +119,9 @@ def test_build_sft_record_uses_non_thinking_translation_prompt() -> None:
     assert [message["role"] for message in record["messages"]] == ["system", "user", "assistant"]
     system_prompt = record["messages"][0]["content"]
     assert "Do not add explanations" in system_prompt
-    assert "Chinese equivalent" in system_prompt
-    assert "Chinese(English)" in system_prompt
-    assert "preserve the English term" in system_prompt
-    assert "Favor sense-for-sense translation" in system_prompt
+    assert "Chinese equivalent" not in system_prompt
+    assert "Chinese(English)" not in system_prompt
+    assert "Favor sense-for-sense translation" not in system_prompt
     assert "<think>" not in json.dumps(record, ensure_ascii=False)
     assert record["messages"][1]["content"].endswith("Transformers are effective.")
     assert record["messages"][2]["content"] == "Transformer 很有效。"
