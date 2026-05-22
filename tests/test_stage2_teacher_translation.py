@@ -59,6 +59,11 @@ def test_make_teacher_sft_record_preserves_source_target_and_metadata() -> None:
     assert record["messages"][0]["content"] == STAGE2_SYSTEM_PROMPT
     assert "Chinese(English)" in record["messages"][0]["content"]
     assert "Favor sense-for-sense translation" in record["messages"][0]["content"]
+    assert "Do not invent Chinese terms for unknown technical terms." in record["messages"][0][
+        "content"
+    ]
+    assert "Example 1" in record["messages"][0]["content"]
+    assert "Example 4" in record["messages"][0]["content"]
     assert record["messages"][2]["content"] == "Transformer 对机器翻译很有效。"
 
 
@@ -110,6 +115,9 @@ def test_responses_teacher_client_posts_responses_payload_and_extracts_text() ->
     assert requests[0]["input"][0]["role"] == "system"
     assert requests[0]["input"][0]["content"] == STAGE2_SYSTEM_PROMPT
     assert "preserve the English term" in requests[0]["input"][0]["content"]
+    assert "Do not invent Chinese terms for unknown technical terms." in requests[0]["input"][0][
+        "content"
+    ]
     assert requests[0]["input"][1]["content"].endswith(
         "Transformers are effective for machine translation."
     )

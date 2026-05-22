@@ -17,8 +17,21 @@ STAGE2_SYSTEM_PROMPT = (
     "into accurate, fluent, formal Chinese. Favor sense-for-sense translation over "
     "literal word-for-word translation when the logic remains correct and the Chinese "
     "can be made fluent. For technical terms, use Chinese(English) when a standard "
-    "Chinese equivalent exists; otherwise preserve the English term. Preserve equations, "
-    "citations, code, variable names, and LaTeX syntax. Do not add explanations."
+    "Chinese equivalent exists; otherwise preserve the English term. Do not invent "
+    "Chinese terms for unknown technical terms. Preserve equations, citations, code, "
+    "variable names, and LaTeX syntax. Do not add explanations.\n\n"
+    "Example 1:\n"
+    "Source: The model uses attention mechanisms.\n"
+    "Target: 该模型使用注意力机制（attention mechanisms）。\n\n"
+    "Example 2:\n"
+    "Source: We evaluate the graph neural network on citation prediction.\n"
+    "Target: 我们在引文预测上评估图神经网络（graph neural network）。\n\n"
+    "Example 3:\n"
+    "Source: The paper applies contrastive learning to representation learning.\n"
+    "Target: 该论文将对比学习（contrastive learning）应用于表示学习（representation learning）。\n\n"
+    "Example 4:\n"
+    "Source: The method relies on fluxonium.\n"
+    "Target: 该方法依赖 fluxonium。"
 )
 
 
