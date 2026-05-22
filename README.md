@@ -145,6 +145,12 @@ uv run torchrun --nproc_per_node=8 scripts/training/train_sft.py \
   --config configs/training/qwen3_32b_stage1_full.yaml
 ```
 
+The selected Stage 1 result checkpoint is:
+
+```text
+runs/checkpoints/qwen3_32b_stage1_full/checkpoint-1000
+```
+
 Stage 2 continues from the Stage 1 checkpoint on CS/AI paper-style data:
 
 ```bash
