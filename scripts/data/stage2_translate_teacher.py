@@ -61,6 +61,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--base-url", default="https://api.vip1129.cc/v1")
     parser.add_argument("--model", default="gpt-5.4")
+    parser.add_argument(
+        "--reasoning-effort",
+        choices=["low", "medium", "high", "xhigh"],
+        default=None,
+    )
     parser.add_argument("--api-key", default=None)
     parser.add_argument("--api-key-env", default="OPENAI_API_KEY")
     parser.add_argument("--max-workers", type=int, default=3)
@@ -84,6 +89,7 @@ def build_teacher_client(args: argparse.Namespace) -> ResponsesTeacherClient:
         base_url=args.base_url,
         api_key=api_key,
         model=args.model,
+        reasoning_effort=args.reasoning_effort,
         timeout=args.timeout,
     )
 
