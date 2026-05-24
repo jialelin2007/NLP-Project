@@ -1,0 +1,10 @@
+\begin{tabular}{lllllll}
+\toprule
+Experiment & Source & Steps & Train loss & Eval loss & Eval token acc. & Status \\
+\midrule
+Stage1 warmup & wandb rf5tj6pa & 35 & 1.177 & - & - & interrupted warmup \\
+Stage1 full & checkpoint-1000 & 1000 & 0.8365 & 0.6761 & 0.8225 & best eval point \\
+Stage1 full & wandb 49q2uxvx & 1480 & 0.744 & 0.699 & 0.8199 & degraded eval \\
+From1000 small LR & checkpoint-1500 & 1500 & 0.7443 & 0.6862 & 0.8215 & best-model load OOM \\
+\bottomrule
+\end{tabular}
